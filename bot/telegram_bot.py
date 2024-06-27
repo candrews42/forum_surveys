@@ -203,7 +203,7 @@ class ChatGPTTelegramBot:
                             ' does not have anything to resend')
             await update.effective_message.reply_text(
                 message_thread_id=get_thread_id(update),
-                text=localized_text('resend_failed', self.config['bot_language'])
+                text=localized_text('resend_failed', self.config['bot_language'], self.config['translations'])
             )
             return
 
@@ -233,7 +233,7 @@ class ChatGPTTelegramBot:
         self.openai.reset_chat_history(chat_id=chat_id, content=reset_content)
         await update.effective_message.reply_text(
             message_thread_id=get_thread_id(update),
-            text=localized_text('reset_done', self.config['bot_language'])
+            text=localized_text('reset_done', self.config['bot_language'], self.config['translations'])
         )
 
     async def image(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -248,7 +248,7 @@ class ChatGPTTelegramBot:
         if image_query == '':
             await update.effective_message.reply_text(
                 message_thread_id=get_thread_id(update),
-                text=localized_text('image_no_prompt', self.config['bot_language'])
+                text=localized_text('image_no_prompt', self.config['bot_language'], self.config['translations'])
             )
             return
 
@@ -282,7 +282,7 @@ class ChatGPTTelegramBot:
                 await update.effective_message.reply_text(
                     message_thread_id=get_thread_id(update),
                     reply_to_message_id=get_reply_to_message_id(self.config, update),
-                    text=f"{localized_text('image_fail', self.config['bot_language'])}: {str(e)}",
+                    text=f"{localized_text('image_fail', self.config['bot_language'], self.config['translations'])}: {str(e)}",
                     parse_mode=constants.ParseMode.MARKDOWN
                 )
 
@@ -300,7 +300,7 @@ class ChatGPTTelegramBot:
         if tts_query == '':
             await update.effective_message.reply_text(
                 message_thread_id=get_thread_id(update),
-                text=localized_text('tts_no_prompt', self.config['bot_language'])
+                text=localized_text('tts_no_prompt', self.config['bot_language'], self.config['translations'])
             )
             return
 
@@ -328,7 +328,7 @@ class ChatGPTTelegramBot:
                 await update.effective_message.reply_text(
                     message_thread_id=get_thread_id(update),
                     reply_to_message_id=get_reply_to_message_id(self.config, update),
-                    text=f"{localized_text('tts_fail', self.config['bot_language'])}: {str(e)}",
+                    text=f"{localized_text('tts_fail', self.config['bot_language'], self.config['translations'])}: {str(e)}",
                     parse_mode=constants.ParseMode.MARKDOWN
                 )
 
@@ -809,7 +809,7 @@ class ChatGPTTelegramBot:
             await update.effective_message.reply_text(
                 message_thread_id=get_thread_id(update),
                 reply_to_message_id=get_reply_to_message_id(self.config, update),
-                text=f"{localized_text('chat_fail', self.config['bot_language'])} {str(e)}",
+                text=f"{localized_text('chat_fail', self.config['bot_language'], self.config['translations'])} {str(e)}",
                 parse_mode=constants.ParseMode.MARKDOWN
             )
 
@@ -989,7 +989,7 @@ class ChatGPTTelegramBot:
         except Exception as e:
             logging.error(f'Failed to respond to an inline query via button callback: {e}')
             logging.exception(e)
-            localized_answer = localized_text('chat_fail', self.config['bot_language'])
+            localized_answer = localized_text('chat_fail', self.config['bot_language'], self.config['translations'])
             await edit_message_with_retry(context, chat_id=None, message_id=inline_message_id,
                                           text=f"{query}\n\n_{answer_tr}:_\n{localized_answer} {str(e)}",
                                           is_inline=True)
