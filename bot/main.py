@@ -3,8 +3,11 @@ import os
 
 from dotenv import load_dotenv
 
+from core.openai.tokens import default_max_tokens
+from core.openai.utils import are_functions_available
+from core.openai.utils import load_translations
 from plugin_manager import PluginManager
-from openai_helper import OpenAIHelper, default_max_tokens, are_functions_available
+from openai_helper import OpenAIHelper
 from telegram_bot import ChatGPTTelegramBot
 
 
@@ -18,6 +21,8 @@ def main():
         level=logging.INFO
     )
     logging.getLogger("httpx").setLevel(logging.WARNING)
+
+    loaded_translations = load_translations('../../translations.json')
 
     # Check if the required environment variables are set
     required_values = ['TELEGRAM_BOT_TOKEN', 'OPENAI_API_KEY']
@@ -60,6 +65,7 @@ def main():
         'vision_max_tokens': int(os.environ.get('VISION_MAX_TOKENS', '300')),
         'tts_model': os.environ.get('TTS_MODEL', 'tts-1'),
         'tts_voice': os.environ.get('TTS_VOICE', 'alloy'),
+        'translations': loaded_translations,
     }
 
     if openai_config['enable_functions'] and not functions_available:
@@ -100,6 +106,7 @@ def main():
         'tts_prices': [float(i) for i in os.environ.get('TTS_PRICES', "0.015,0.030").split(",")],
         'transcription_price': float(os.environ.get('TRANSCRIPTION_PRICE', 0.006)),
         'bot_language': os.environ.get('BOT_LANGUAGE', 'en'),
+        'translations': loaded_translations,
     }
 
     plugin_config = {

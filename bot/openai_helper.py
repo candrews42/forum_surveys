@@ -7,97 +7,26 @@ import tiktoken
 
 import openai
 
-import requests
 import json
 import httpx
 import io
 from datetime import date
-from calendar import monthrange
 from PIL import Image
 
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
 
+from core.openai.models import GPT_3_MODELS
+from core.openai.models import GPT_3_16K_MODELS
+from core.openai.models import GPT_4_MODELS
+from core.openai.models import GPT_4_32K_MODELS
+from core.openai.models import GPT_4_VISION_MODELS
+from core.openai.models import GPT_4_128K_MODELS
+from core.openai.models import GPT_4O_MODELS
+from core.openai.utils import localized_text
+from core.openai.tokens import max_model_tokens
 from core.prompts import get_assistant_prompt
-from utils import is_direct_result, encode_image, decode_image
 from plugin_manager import PluginManager
-
-# Models can be found here: https://platform.openai.com/docs/models/overview
-# Models gpt-3.5-turbo-0613 and  gpt-3.5-turbo-16k-0613 will be deprecated on June 13, 2024
-GPT_3_MODELS = ("gpt-3.5-turbo", "gpt-3.5-turbo-0301", "gpt-3.5-turbo-0613")
-GPT_3_16K_MODELS = ("gpt-3.5-turbo-16k", "gpt-3.5-turbo-16k-0613", "gpt-3.5-turbo-1106", "gpt-3.5-turbo-0125")
-GPT_4_MODELS = ("gpt-4", "gpt-4-0314", "gpt-4-0613", "gpt-4-turbo-preview")
-GPT_4_32K_MODELS = ("gpt-4-32k", "gpt-4-32k-0314", "gpt-4-32k-0613")
-GPT_4_VISION_MODELS = ("gpt-4-vision-preview",)
-GPT_4_128K_MODELS = ("gpt-4-1106-preview","gpt-4-0125-preview","gpt-4-turbo-preview", "gpt-4-turbo", "gpt-4-turbo-2024-04-09")
-GPT_4O_MODELS = ("gpt-4o",)
-GPT_ALL_MODELS = GPT_3_MODELS + GPT_3_16K_MODELS + GPT_4_MODELS + GPT_4_32K_MODELS + GPT_4_VISION_MODELS + GPT_4_128K_MODELS + GPT_4O_MODELS
-
-def default_max_tokens(model: str) -> int:
-    """
-    Gets the default number of max tokens for the given model.
-    :param model: The model name
-    :return: The default number of max tokens
-    """
-    base = 1200
-    if model in GPT_3_MODELS:
-        return base
-    elif model in GPT_4_MODELS:
-        return base * 2
-    elif model in GPT_3_16K_MODELS:
-        if model == "gpt-3.5-turbo-1106":
-            return 4096
-        return base * 4
-    elif model in GPT_4_32K_MODELS:
-        return base * 8
-    elif model in GPT_4_VISION_MODELS:
-        return 4096
-    elif model in GPT_4_128K_MODELS:
-        return 4096
-    elif model in GPT_4O_MODELS:
-        return 4096
-
-
-def are_functions_available(model: str) -> bool:
-    """
-    Whether the given model supports functions
-    """
-    # Deprecated models
-    if model in ("gpt-3.5-turbo-0301", "gpt-4-0314", "gpt-4-32k-0314"):
-        return False
-    # Stable models will be updated to support functions on June 27, 2023
-    if model in ("gpt-3.5-turbo", "gpt-3.5-turbo-1106", "gpt-4", "gpt-4-32k","gpt-4-1106-preview","gpt-4-0125-preview","gpt-4-turbo-preview"):
-        return datetime.date.today() > datetime.date(2023, 6, 27)
-    # Models gpt-3.5-turbo-0613 and  gpt-3.5-turbo-16k-0613 will be deprecated on June 13, 2024
-    if model in ("gpt-3.5-turbo-0613", "gpt-3.5-turbo-16k-0613"):
-        return datetime.date.today() < datetime.date(2024, 6, 13)
-    if model == 'gpt-4-vision-preview':
-        return False
-    return True
-
-
-# Load translations
-parent_dir_path = os.path.join(os.path.dirname(__file__), os.pardir)
-translations_file_path = os.path.join(parent_dir_path, 'translations.json')
-with open(translations_file_path, 'r', encoding='utf-8') as f:
-    translations = json.load(f)
-
-
-def localized_text(key, bot_language):
-    """
-    Return translated text for a key in specified bot_language.
-    Keys and translations can be found in the translations.json.
-    """
-    try:
-        return translations[bot_language][key]
-    except KeyError:
-        logging.warning(f"No translation available for bot_language code '{bot_language}' and key '{key}'")
-        # Fallback to English if the translation is not available
-        if key in translations['en']:
-            return translations['en'][key]
-        else:
-            logging.warning(f"No english definition found for key '{key}' in translations.json")
-            # return key as text
-            return key
+from utils import is_direct_result, encode_image, decode_image
 
 
 class OpenAIHelper:
@@ -158,13 +87,14 @@ class OpenAIHelper:
             self.__add_to_history(chat_id, role="assistant", content=answer)
 
         bot_language = self.config['bot_language']
+        translations = self.config['translations']
         show_plugins_used = len(plugins_used) > 0 and self.config['show_plugins_used']
         plugin_names = tuple(self.plugin_manager.get_plugin_source_name(plugin) for plugin in plugins_used)
         if self.config['show_usage']:
             answer += "\n\n---\n" \
-                      f"💰 {str(response.usage.total_tokens)} {localized_text('stats_tokens', bot_language)}" \
-                      f" ({str(response.usage.prompt_tokens)} {localized_text('prompt', bot_language)}," \
-                      f" {str(response.usage.completion_tokens)} {localized_text('completion', bot_language)})"
+                      f"💰 {str(response.usage.total_tokens)} {localized_text('stats_tokens', bot_language, self.translations)}" \
+                      f" ({str(response.usage.prompt_tokens)} {localized_text('prompt', bot_language, self.translations)}," \
+                      f" {str(response.usage.completion_tokens)} {localized_text('completion', bot_language, self.translations)})"
             if show_plugins_used:
                 answer += f"\n🔌 {', '.join(plugin_names)}"
         elif show_plugins_used:
@@ -202,7 +132,7 @@ class OpenAIHelper:
         show_plugins_used = len(plugins_used) > 0 and self.config['show_plugins_used']
         plugin_names = tuple(self.plugin_manager.get_plugin_source_name(plugin) for plugin in plugins_used)
         if self.config['show_usage']:
-            answer += f"\n\n---\n💰 {tokens_used} {localized_text('stats_tokens', self.config['bot_language'])}"
+            answer += f"\n\n---\n💰 {tokens_used} {localized_text('stats_tokens', self.config['bot_language'], self.translations)}"
             if show_plugins_used:
                 answer += f"\n🔌 {', '.join(plugin_names)}"
         elif show_plugins_used:
@@ -224,6 +154,7 @@ class OpenAIHelper:
         :return: The answer from the model and the number of tokens used
         """
         bot_language = self.config['bot_language']
+        translations = self.config['translations']
         try:
             if chat_id not in self.conversations or self.__max_age_reached(chat_id):
                 self.reset_chat_history(chat_id)
@@ -234,7 +165,7 @@ class OpenAIHelper:
 
             # Summarize the chat history if it's too long to avoid excessive token usage
             token_count = self.__count_tokens(self.conversations[chat_id])
-            exceeded_max_tokens = token_count + self.config['max_tokens'] > self.__max_model_tokens()
+            exceeded_max_tokens = token_count + self.config['max_tokens'] > max_model_tokens(self.config['model'])
             exceeded_max_history_size = len(self.conversations[chat_id]) > self.config['max_history_size']
 
             if exceeded_max_tokens or exceeded_max_history_size:
@@ -271,10 +202,10 @@ class OpenAIHelper:
             raise e
 
         except openai.BadRequestError as e:
-            raise Exception(f"⚠️ _{localized_text('openai_invalid', bot_language)}._ ⚠️\n{str(e)}") from e
+            raise Exception(f"⚠️ _{localized_text('openai_invalid', bot_language, self.translations)}._ ⚠️\n{str(e)}") from e
 
         except Exception as e:
-            raise Exception(f"⚠️ _{localized_text('error', bot_language)}._ ⚠️\n{str(e)}") from e
+            raise Exception(f"⚠️ _{localized_text('error', bot_language, self.translations)}._ ⚠️\n{str(e)}") from e
 
     async def __handle_function_call(self, chat_id, response, stream=False, times=0, plugins_used=()):
         function_name = ''
@@ -336,6 +267,7 @@ class OpenAIHelper:
         :return: The image URL and the image size
         """
         bot_language = self.config['bot_language']
+        translations = self.config['translations']
         try:
             response = await self.client.images.generate(
                 prompt=prompt,
@@ -349,13 +281,13 @@ class OpenAIHelper:
             if len(response.data) == 0:
                 logging.error(f'No response from GPT: {str(response)}')
                 raise Exception(
-                    f"⚠️ _{localized_text('error', bot_language)}._ "
-                    f"⚠️\n{localized_text('try_again', bot_language)}."
+                    f"⚠️ _{localized_text('error', bot_language, self.translations)}._ "
+                    f"⚠️\n{localized_text('try_again', bot_language, self.translations)}."
                 )
 
             return response.data[0].url, self.config['image_size']
         except Exception as e:
-            raise Exception(f"⚠️ _{localized_text('error', bot_language)}._ ⚠️\n{str(e)}") from e
+            raise Exception(f"⚠️ _{localized_text('error', bot_language, self.translations)}._ ⚠️\n{str(e)}") from e
 
     async def generate_speech(self, text: str) -> tuple[any, int]:
         """
@@ -364,6 +296,7 @@ class OpenAIHelper:
         :return: The audio in bytes and the text size
         """
         bot_language = self.config['bot_language']
+        translations = self.config['translations']
         try:
             response = await self.client.audio.speech.create(
                 model=self.config['tts_model'],
@@ -377,7 +310,7 @@ class OpenAIHelper:
             temp_file.seek(0)
             return temp_file, len(text)
         except Exception as e:
-            raise Exception(f"⚠️ _{localized_text('error', bot_language)}._ ⚠️\n{str(e)}") from e
+            raise Exception(f"⚠️ _{localized_text('error', bot_language, self.translations)}._ ⚠️\n{str(e)}") from e
 
     async def transcribe(self, filename):
         """
@@ -390,7 +323,7 @@ class OpenAIHelper:
                 return result.text
         except Exception as e:
             logging.exception(e)
-            raise Exception(f"⚠️ _{localized_text('error', self.config['bot_language'])}._ ⚠️\n{str(e)}") from e
+            raise Exception(f"⚠️ _{localized_text('error', self.config['bot_language'], self.translations)}._ ⚠️\n{str(e)}") from e
 
     @retry(
         reraise=True,
@@ -406,6 +339,7 @@ class OpenAIHelper:
         :return: The answer from the model and the number of tokens used
         """
         bot_language = self.config['bot_language']
+        translations = self.config['translations']
         try:
             if chat_id not in self.conversations or self.__max_age_reached(chat_id):
                 self.reset_chat_history(chat_id)
@@ -424,7 +358,7 @@ class OpenAIHelper:
 
             # Summarize the chat history if it's too long to avoid excessive token usage
             token_count = self.__count_tokens(self.conversations[chat_id])
-            exceeded_max_tokens = token_count + self.config['max_tokens'] > self.__max_model_tokens()
+            exceeded_max_tokens = token_count + self.config['max_tokens'] > max_model_tokens(self.config['model'])
             exceeded_max_history_size = len(self.conversations[chat_id]) > self.config['max_history_size']
 
             if exceeded_max_tokens or exceeded_max_history_size:
@@ -469,10 +403,10 @@ class OpenAIHelper:
             raise e
 
         except openai.BadRequestError as e:
-            raise Exception(f"⚠️ _{localized_text('openai_invalid', bot_language)}._ ⚠️\n{str(e)}") from e
+            raise Exception(f"⚠️ _{localized_text('openai_invalid', bot_language, self.translations)}._ ⚠️\n{str(e)}") from e
 
         except Exception as e:
-            raise Exception(f"⚠️ _{localized_text('error', bot_language)}._ ⚠️\n{str(e)}") from e
+            raise Exception(f"⚠️ _{localized_text('error', bot_language, self.translations)}._ ⚠️\n{str(e)}") from e
 
 
     async def interpret_image(self, chat_id, fileobj, prompt=None):
@@ -511,14 +445,15 @@ class OpenAIHelper:
             self.__add_to_history(chat_id, role="assistant", content=answer)
 
         bot_language = self.config['bot_language']
+        translations = self.config['translations']
         # Plugins are not enabled either
         # show_plugins_used = len(plugins_used) > 0 and self.config['show_plugins_used']
         # plugin_names = tuple(self.plugin_manager.get_plugin_source_name(plugin) for plugin in plugins_used)
         if self.config['show_usage']:
             answer += "\n\n---\n" \
-                      f"💰 {str(response.usage.total_tokens)} {localized_text('stats_tokens', bot_language)}" \
-                      f" ({str(response.usage.prompt_tokens)} {localized_text('prompt', bot_language)}," \
-                      f" {str(response.usage.completion_tokens)} {localized_text('completion', bot_language)})"
+                      f"💰 {str(response.usage.total_tokens)} {localized_text('stats_tokens', bot_language, self.translations)}" \
+                      f" ({str(response.usage.prompt_tokens)} {localized_text('prompt', bot_language, self.translations)}," \
+                      f" {str(response.usage.completion_tokens)} {localized_text('completion', bot_language, self.translations)})"
             # if show_plugins_used:
             #     answer += f"\n🔌 {', '.join(plugin_names)}"
         # elif show_plugins_used:
@@ -561,7 +496,7 @@ class OpenAIHelper:
         #show_plugins_used = len(plugins_used) > 0 and self.config['show_plugins_used']
         #plugin_names = tuple(self.plugin_manager.get_plugin_source_name(plugin) for plugin in plugins_used)
         if self.config['show_usage']:
-            answer += f"\n\n---\n💰 {tokens_used} {localized_text('stats_tokens', self.config['bot_language'])}"
+            answer += f"\n\n---\n💰 {tokens_used} {localized_text('stats_tokens', self.config['bot_language'], self.translations)}"
         #     if show_plugins_used:
         #         answer += f"\n🔌 {', '.join(plugin_names)}"
         # elif show_plugins_used:
@@ -622,26 +557,6 @@ class OpenAIHelper:
             temperature=0.4
         )
         return response.choices[0].message.content
-
-    def __max_model_tokens(self):
-        base = 4096
-        if self.config['model'] in GPT_3_MODELS:
-            return base
-        if self.config['model'] in GPT_3_16K_MODELS:
-            return base * 4
-        if self.config['model'] in GPT_4_MODELS:
-            return base * 2
-        if self.config['model'] in GPT_4_32K_MODELS:
-            return base * 8
-        if self.config['model'] in GPT_4_VISION_MODELS:
-            return base * 31
-        if self.config['model'] in GPT_4_128K_MODELS:
-            return base * 31
-        if self.config['model'] in GPT_4O_MODELS:
-            return base * 31
-        raise NotImplementedError(
-            f"Max tokens for model {self.config['model']} is not implemented yet."
-        )
 
     # https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
     def __count_tokens(self, messages) -> int:
