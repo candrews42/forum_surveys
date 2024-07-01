@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from core.openai.tokens import default_max_tokens
 from core.openai.utils import are_functions_available
 from core.openai.utils import load_translations
+from core.chat_manager import ChatManager
 from plugin_manager import PluginManager
 from openai_helper import OpenAIHelper
 from telegram_bot import ChatGPTTelegramBot
@@ -114,9 +115,10 @@ def main():
     }
 
     # Setup and run ChatGPT and Telegram bot
+    chat_manager = ChatManager(config=openai_config)
     plugin_manager = PluginManager(config=plugin_config)
-    openai_helper = OpenAIHelper(config=openai_config, plugin_manager=plugin_manager)
-    telegram_bot = ChatGPTTelegramBot(config=telegram_config, openai=openai_helper)
+    openai_helper = OpenAIHelper(config=openai_config, plugin_manager=plugin_manager, chat_manager=chat_manager)
+    telegram_bot = ChatGPTTelegramBot(config=telegram_config, openai=openai_helper, chat_manager=chat_manager)
     telegram_bot.run()
 
 
