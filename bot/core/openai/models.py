@@ -1,0 +1,41 @@
+"""Open AI Model Bank."""
+
+
+# Models can be found here: https://platform.openai.com/docs/models/overview
+# Models gpt-3.5-turbo-0613 and  gpt-3.5-turbo-16k-0613 will be deprecated
+# on June 13, 2024
+GPT_35_TURBO = "gpt-3.5-turbo"
+GPT_35_TURBO_0301 = "gpt-3.5-turbo-0301"
+GPT_35_TURBO_0613 = "gpt-3.5-turbo-0613"
+GPT_35_TURBO_1106 = "gpt-3.5-turbo-1106"
+GPT_35_TURBO_16K_1613 = "gpt-3.5-turbo-16k-0613"
+GPT_4 = "gpt-4"
+GPT_4_0314 = "gpt-4-0314"
+GPT_4_32K = "gpt-4-32k"
+GPT_4_32K_0314 = "gpt-4-32k-0314"
+GPT_4_1106_PREVIEW = "gpt-4-1106-preview"
+GPT_4_0125_PREVIEW = "gpt-4-0125-preview"
+GPT_4_TURBO_PREVIEW = "gpt-4-turbo-preview"
+GPT_4_VISION_PREVIEW= "gpt-4-vision-preview"
+GPT_4O = "gpt-4o"
+
+GPT_3_MODELS = (GPT_35_TURBO, GPT_35_TURBO_0301, GPT_35_TURBO_0613)
+GPT_3_16K_MODELS = (
+    "gpt-3.5-turbo-16k", GPT_35_TURBO_16K_1613, GPT_35_TURBO_1106,
+    "gpt-3.5-turbo-0125"
+)
+GPT_4_MODELS = (GPT_4, GPT_4_0314, "gpt-4-0613", GPT_4_TURBO_PREVIEW)
+GPT_4_32K_MODELS = (GPT_4_32K, GPT_4_32K_0314, "gpt-4-32k-0613")
+GPT_4_VISION_MODELS = (GPT_4_VISION_PREVIEW,)
+GPT_4_128K_MODELS = (
+    GPT_4_1106_PREVIEW, GPT_4_0125_PREVIEW, GPT_4_TURBO_PREVIEW,
+    "gpt-4-turbo", "gpt-4-turbo-2024-04-09"
+)
+GPT_4O_MODELS = (GPT_4O,)
+
+DEPRECATED_MODELS = (GPT_35_TURBO_0301, GPT_4_0314, GPT_4_32K_0314)
+DEPRECATION_NOTICE_MODELS = (GPT_35_TURBO_0613, GPT_35_TURBO_16K_1613)
+STABLE_MODELS = (
+    GPT_35_TURBO, GPT_35_TURBO_1106, GPT_4, GPT_4_32K,
+    GPT_4_1106_PREVIEW, GPT_4_0125_PREVIEW, GPT_4_TURBO_PREVIEW
+)
