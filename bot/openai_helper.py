@@ -9,13 +9,6 @@ import io
 
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
 
-from core.openai.models import GPT_3_MODELS
-from core.openai.models import GPT_3_16K_MODELS
-from core.openai.models import GPT_4_MODELS
-from core.openai.models import GPT_4_32K_MODELS
-from core.openai.models import GPT_4_VISION_MODELS
-from core.openai.models import GPT_4_128K_MODELS
-from core.openai.models import GPT_4O_MODELS
 from core.openai.utils import localized_text
 from core.openai.tokens import max_model_tokens
 from core.openai.tokens import count_tokens
