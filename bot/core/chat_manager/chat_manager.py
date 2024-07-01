@@ -17,7 +17,7 @@ class ChatManager:
         """
         self.conversations: dict[int, list] = {}
         self.conversations_vision: dict[int, bool] = {}
-        self.last_updated: dict[int: datetime]
+        self.last_updated: dict[int: datetime] = {}
         self.config = config
 
     def get_conversation_stats(self, chat_id: int) -> tuple[int, int]:
