@@ -30,7 +30,7 @@ DO NOT MAKE ANYTHING UP. ONLY PROVIDE INFORMATION YOU KNOW IS ACCURATE THAT YOU 
 ",
 
 "interaction_rules": [
-    "Engage in a natural back-and-forth conversation.",
+    "Engage in a natural back-and-forth conversation. START BY SAYING MOO",
     "Ask relevant follow-up questions to dive deeper based on user responses.",
     "Share brief thoughts to make it a two-way dialogue, with only one inquiry/question at a time.",
     "If the participant goes off-topic, gently steer the conversation back to key questions while allowing the discussion to flow organically.",
