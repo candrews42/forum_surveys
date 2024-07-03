@@ -47,7 +47,7 @@ def main():
         'assistant_prompt': os.environ.get('ASSISTANT_PROMPT', 'You are a helpful assistant.'),
         'max_tokens': int(os.environ.get('MAX_TOKENS', max_tokens_default)),
         'n_choices': int(os.environ.get('N_CHOICES', 1)),
-        'temperature': float(os.environ.get('TEMPERATURE', 1.0)),
+        'temperature': float(os.environ.get('TEMPERATURE', 0.0)),
         'image_model': os.environ.get('IMAGE_MODEL', 'dall-e-2'),
         'image_quality': os.environ.get('IMAGE_QUALITY', 'standard'),
         'image_style': os.environ.get('IMAGE_STYLE', 'vivid'),
@@ -125,7 +125,7 @@ def main():
     }
 
     # Setup and run ChatGPT and Telegram bot
-    airtable_manager = AirTable(config=airtable_config)
+    # airtable_manager = AirTable(config=airtable_config)
     chat_manager = ChatManager(config=openai_config)
     plugin_manager = PluginManager(config=plugin_config)
     openai_helper = OpenAIHelper(config=openai_config, plugin_manager=plugin_manager, chat_manager=chat_manager)

@@ -16,6 +16,7 @@ from plugins.worldtimeapi import WorldTimeApiPlugin
 from plugins.whois_ import WhoisPlugin
 from plugins.webshot import WebshotPlugin
 from plugins.iplocation import IpLocationPlugin
+from plugins.airtable import AirTablePlugin
 
 
 class PluginManager:
@@ -26,6 +27,7 @@ class PluginManager:
     def __init__(self, config):
         enabled_plugins = config.get('plugins', [])
         plugin_mapping = {
+            'airtable': AirTablePlugin,
             'wolfram': WolframAlphaPlugin,
             'weather': WeatherPlugin,
             'crypto': CryptoPlugin,
