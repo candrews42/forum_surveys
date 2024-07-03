@@ -3,6 +3,7 @@ import os
 
 from dotenv import load_dotenv
 
+from core.airtable import AirTable
 from core.openai.tokens import default_max_tokens
 from core.openai.utils import are_functions_available
 from core.openai.utils import load_translations
@@ -114,7 +115,17 @@ def main():
         'plugins': os.environ.get('PLUGINS', '').split(',')
     }
 
+    airtable_config = {
+        'api_key': os.environ.get('AIRTABLE_API_KEY'),
+        'base_id': os.environ.get('AIRTABLE_BASE_ID'),
+        'table_event_details': os.environ.get('AIRTABLE_TABLE_EVENTS'),
+        'table_sessions': os.environ.get('AIRTABLE_TABLE_SESSIONS'),
+        'table_attendees': os.environ.get('AIRTABLE_TABLE_ATTENDEES'),
+        'table_feedback': os.environ.get('AIRTABLE_TABLE_FEEDBACK'),
+    }
+
     # Setup and run ChatGPT and Telegram bot
+    airtable_manager = AirTable(config=airtable_config)
     chat_manager = ChatManager(config=openai_config)
     plugin_manager = PluginManager(config=plugin_config)
     openai_helper = OpenAIHelper(config=openai_config, plugin_manager=plugin_manager, chat_manager=chat_manager)
