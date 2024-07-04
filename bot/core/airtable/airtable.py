@@ -24,6 +24,10 @@ class AirTable:
             base_id,
             config['table_feedback'
         ])
+        self.questions_table = self.client.table(
+            base_id,
+            config['table_questions'
+        ])
 
     def read_event_information(self):
         return (

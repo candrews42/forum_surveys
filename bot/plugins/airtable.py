@@ -18,10 +18,11 @@ class AirTablePlugin(Plugin):
             raise ValueError('AIRTABLE_BASE_ID and AIRTABLE_API_KEY environment variables must be set to use AirTablePlugin')
 
         self.client = Api(api_key)
-        self.event_table = self.client.table(base_id, os.getenv('AIRTABLE_TABLE_EVENT_DETAILS'))
+        self.event_table = self.client.table(base_id, os.getenv('AIRTABLE_TABLE_EVENTS'))
         self.session_table = self.client.table(base_id, os.getenv('AIRTABLE_TABLE_SESSIONS'))
         self.attendees_table = self.client.table(base_id, os.getenv('AIRTABLE_TABLE_ATTENDEES'))
         self.feedback_table = self.client.table(base_id, os.getenv('AIRTABLE_TABLE_FEEDBACK'))
+        self.questions_table = self.client.table(base_id, os.getenv('AIRTABLE_TABLE_QUESTIONS'))
 
     def get_source_name(self) -> str:
         return "Airtable"
@@ -34,8 +35,13 @@ class AirTablePlugin(Plugin):
                 "parameters": {}
             },
             {
+                "name": "read_feedback_questions",
+                "description": "Reads questions that the event coordinator wants answered from the Airtable database. ALWAYS DO THIS AT THE START OF A CONVERSATION",
+                "parameters": {}
+            },
+            {
                 "name": "add_question_response",
-                "description": "Adds a question response to the Airtable database in the Feedback table.",
+                "description": "Adds a question response to the Airtable database in the Feedback table. Be liberal in adding question responses where relevant",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -57,6 +63,8 @@ class AirTablePlugin(Plugin):
     async def execute(self, function_name, helper, **kwargs) -> Dict:
         if function_name == "read_event_information":
             return await self.read_event_information()
+        elif function_name == "read_feedback_questions":
+            return await self.read_feedback_questions()
         elif function_name == "add_question_response":
             return await self.add_question_response(kwargs['user'], kwargs['date'], kwargs['question_number'], kwargs['response'])
         elif function_name == "read_database_responses":
@@ -69,6 +77,11 @@ class AirTablePlugin(Plugin):
             'events': self.event_table.all(),
             'sessions': self.session_table.all(),
             'attendees': self.attendees_table.all()
+        }
+
+    async def read_feedback_questions(self):
+        return {
+            'events': self.questions_table.all(),
         }
 
     async def add_question_response(self, user: str, date: str, question_number: str, response: str):
