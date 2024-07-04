@@ -76,7 +76,7 @@ class AirTablePlugin(Plugin):
         response = self.feedback_table.create({
             'User': user,
             'Date': date,
-            'Question #': question_number,
+            'Question #': int(question_number),
             'Response': response
         })
         assert response['id'] is not None
