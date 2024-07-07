@@ -166,7 +166,7 @@ class OpenAIHelper:
                 'max_tokens': self.config['max_tokens'],
                 'presence_penalty': self.config['presence_penalty'],
                 'frequency_penalty': self.config['frequency_penalty'],
-                'stream': stream
+                'stream': stream,
             }
 
             if self.config['enable_functions'] and not self.chat_manager.conversations_vision[chat_id]:
@@ -493,6 +493,6 @@ class OpenAIHelper:
         response = await self.client.chat.completions.create(
             model=self.config['model'],
             messages=messages,
-            temperature=0.4
+            temperature=0.1
         )
         return response.choices[0].message.content
