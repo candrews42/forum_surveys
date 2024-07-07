@@ -1,6 +1,6 @@
+
+
 # Setup Initial Prompt
-
-
 bank = {}
 
 version_1 = "v1"
@@ -46,4 +46,5 @@ Always start with reading the questions (using the airtable plugins read_feedbac
 """
 
 def get_assistant_prompt() -> str:
+    
     return bank[active_version]

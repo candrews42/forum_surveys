@@ -3,6 +3,7 @@ import datetime
 
 from core.openai.tokens import count_tokens
 from core.prompts import get_assistant_prompt
+from plugins.airtable import AirTablePlugin
 
 
 class ChatManager:
@@ -54,6 +55,10 @@ class ChatManager:
         """
         if content == '':
             content = get_assistant_prompt()
+            print(content)
+            airtable_manager = AirTablePlugin()
+            questions = airtable_manager.read_feedback_questions()
+            print(questions)
         self.conversations[chat_id] = []
         self.__add_message(chat_id, "system", content)
         self.conversations_vision[chat_id] = False

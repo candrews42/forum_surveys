@@ -14,6 +14,7 @@ from core.openai.tokens import max_model_tokens
 from core.openai.tokens import count_tokens
 from core.chat_manager import ChatManager
 from plugin_manager import PluginManager
+from airtable import AirTable
 from utils import is_direct_result, encode_image
 
 
@@ -26,7 +27,8 @@ class OpenAIHelper:
             self,
             config: dict,
             plugin_manager: PluginManager,
-            chat_manager: ChatManager
+            chat_manager: ChatManager,
+            airtable_manager: AirTable
         ):
         """
         Initializes the OpenAI helper class with the given configuration.

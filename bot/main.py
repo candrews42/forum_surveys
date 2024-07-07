@@ -125,12 +125,13 @@ def main():
     }
 
     # Setup and run ChatGPT and Telegram bot
-    # airtable_manager = AirTable(config=airtable_config)
+    airtable_manager = AirTable(config=airtable_config)
     chat_manager = ChatManager(config=openai_config)
     plugin_manager = PluginManager(config=plugin_config)
-    openai_helper = OpenAIHelper(config=openai_config, plugin_manager=plugin_manager, chat_manager=chat_manager)
+    openai_helper = OpenAIHelper(config=openai_config, plugin_manager=plugin_manager, chat_manager=chat_manager, airtable_manager = airtable_manager)
     telegram_bot = ChatGPTTelegramBot(config=telegram_config, openai=openai_helper, chat_manager=chat_manager)
     telegram_bot.run()
+    
 
 
 if __name__ == '__main__':

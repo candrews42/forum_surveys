@@ -81,7 +81,7 @@ class AirTablePlugin(Plugin):
 
     async def read_feedback_questions(self):
         return {
-            'events': self.questions_table.all(),
+            'questions': self.questions_table.all(),
         }
 
     async def add_question_response(self, user: str, date: str, question_number: str, response: str):

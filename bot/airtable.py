@@ -24,12 +24,21 @@ class AirTable:
             base_id,
             config['table_feedback'
         ])
+        self.question_table = self.client.table(
+            base_id,
+            config['table_questions'
+        ])
 
     def read_event_information(self):
         return (
             self.event_table.all(),
             self.session_table.all(),
             self.attendees_table.all(),
+        )
+
+    def read_questions(self):
+        return (
+            self.question_table.all(),
         )
 
     def add_question_response(
