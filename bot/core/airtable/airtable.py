@@ -24,7 +24,7 @@ class AirTable:
             base_id,
             config['table_feedback'
         ])
-        self.questions_table = self.client.table(
+        self.question_table = self.client.table(
             base_id,
             config['table_questions'
         ])
@@ -35,7 +35,12 @@ class AirTable:
             self.session_table.all(),
             self.attendees_table.all(),
         )
-    
+
+    def read_questions(self):
+        return (
+            self.question_table.all(),
+        )
+
     def add_question_response(
             self,
             user: int,
